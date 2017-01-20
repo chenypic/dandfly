@@ -100,13 +100,16 @@ reader->Update();
 ImageType::Pointer image = reader->GetOutput();
 ```
 
-Any attempt to access image data before the reader executes will yield an image with no pixel data. It is likely that a program crash will result since the image will not have been properly initialized.
-
 在`reader`执行之前，任何的访问图像将获得一个没有像素数据的图片。正如一个图像没有被合适的初始化将产生一个程序崩溃一样。
 
 ### 1.1.3. 访问像素数据
 
+源代码为`Image3.cxx`.
 
+This example illustrates the use of the SetPixel() and GetPixel() methods. These two methods provide direct access to the pixel data contained in the image. Note that these two methods are relatively slow and should not be used in situations where high-performance access is required.
+Image iterators are the appropriatemechanism to efficiently access image pixel data. (See Chapter 6 on page 141 for information about image iterators.)
+
+这个例子展示了`SetPixel() `和`GetPixel()`方法的使用。
 
 
 
