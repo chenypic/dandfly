@@ -88,9 +88,7 @@ ReaderType::Pointer reader = ReaderType::New();
 const char * filename = argv[1];
 reader->SetFileName( filename );
 ```
-Reader objects are referred to as pipeline source objects; they respond to pipeline update requests and initiate the data flow in the pipeline. The pipeline update mechanism ensures that the reader only executes when a data request is made to the reader and the reader has not read any data. In the
-current example we explicitly invoke the Update() method because the output of the reader is not connected to other filters. In normal application the reader’s output is connected to the input of an image filter and the update invocation on the filter triggers an update of the reader. The following line illustrates how an explicit update is invoked on the reader.
-`Reader`被称为管道流对象，对应于管道更新需求，和初始化管道流。
+`Reader`被称为管道流对象，对应于管道更新需求，和初始化管道流。管道更新机制保证用`reader`仅在得到了一个数据请求，但是还没有读取数据时执行。在当前的例子中，我们明确地调用`Update()`方法，因为`reader`的输出没有连接到其他的滤波器。在正常的应用中，`reader`的输出被连接到一个滤波器的输入，滤波器上的更新调用引发一个`reader`的一个更新。下面的例子说明`reader`上的一个调用明确地更新。
 
 
 
