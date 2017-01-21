@@ -1,5 +1,3 @@
-<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
-
 # 1.数据表示
 
 本章介绍ITK中表示数据的基本的类。最常用的类为`itk::Image` 、`itk::PointSet` 和`itk::PointSet`.
