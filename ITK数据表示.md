@@ -144,4 +144,6 @@ image->SetPixel( pixelIndex, pixelValue+1 );
 
 ![image](https://raw.githubusercontent.com/chenypic/dandfly/master/image/%E5%9B%BE4_1.PNG)
 
+图4.1阐述了与` itk::Image.`相关的主要几何概念。在图中，圆圈表示像素的中心，像素值为像素中心的狄拉克 $\delta$ 函数。像素间距为像素中心之间的距离，在不同的维度上可以不同。图像原点为第一个像素的坐标。对于这个简单的例子，像素网格在物理空间中完美的分配，图像方向是一个恒等映射。如果像素网格按照物理空间进行旋转，图像方向将包括一个旋转矩阵。
 
+一个像素是环绕在像素中心的一个矩形区域的一个有效的值。可以视为图像网格的`Voronoi`区域，如右图所示。像素值的线性内插法在`Delaunay `区域内执行，其乖点为像素中心。
