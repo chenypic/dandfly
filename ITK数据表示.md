@@ -212,4 +212,95 @@ std::cout << "Direction = " << std::endl;
 std::cout << direct << std::endl;
 ```
 
-Once the spacing, origin, and direction of the image samples have been initialized, the image will correctly map pixel indices to and from physical space coordinates. The following code illustrates how a point in physical space can be mapped into an image index for the purpose of reading the content of the closest pixel.
+一旦间距、原点和方向被初始化，图像将精确地将像素索引映射到物理空间坐标。下面的例子展示了物理空间中的一个点怎么样被映射到一个图像`index`，为了读取最近像素的内容。
+
+首先，一个` itk::Point`类型必须被声明。`point`类型在用来表示坐标和空间维度之上模板化。在这种特殊的情况下，`point`的维度必须匹配图像的维度。
+
+```c++
+typedef itk::Point< double, ImageType::ImageDimension > PointType;
+```
+
+` itk::Point`类型与`itk::Index`类型相似，是一个又小又简单的对象。这意味着不需要使用` itk::SmartPointer`。像其他C++类一样，`point`被简单实例化声明。一旦一个`point`被声明，其元素可以利用传统的数组符号进行访问。特别地，`[]`操作符变得有效。出于效率原因，在访问特定的`point`元素时不执行边界检查。用户必须保证`index`在有效范围$\{0,Dimension−1\}$内.
+
+```c++
+PointType point;
+point[0] = 1.45; // x coordinate
+point[1] = 7.21; // y coordinate
+point[2] = 9.28; // z coordinate
+```
+
+图像使用当前的原点和间距值把`point`映射到`index`. 必须提供一个`index`对象来接收映射的结果。使用图像类型中定义的`IndexType`对`index`对象进行实例化。
+
+```c++
+ImageType::IndexType pixelIndex;
+```
+
+`TransformPhysicalPointToIndex()`方法计算与提供的`point`的最近的像素`index`. 这个方法检查这个`index`是否包含在一个当前的缓冲像素数据中。这个方法返回一个布尔类型数据，指示结果`index`是否落在缓冲区域。输出`index`不应该被使用，当返回的数据是错误的。
+
+下面的例子阐述了`point`到`index`的 映射，以及使用像素`index`去访问像素数据。
+
+```c++
+const bool isInside =
+image->TransformPhysicalPointToIndex( point, pixelIndex );
+if ( isInside )
+{
+ImageType::PixelType pixelValue = image->GetPixel( pixelIndex );
+pixelValue += 5;
+image->SetPixel( pixelIndex, pixelValue );
+}
+```
+
+请记住` GetPixel()` 和 `SetPixel() `都是低效率的访问像素数据的方法。当需要访问大量像素数据时，应该使用图像迭代器。
+
+下面的例子阐述了像素`index`位置和其相应的物理`point`表示的数学关系。
+
+让我们想象存在一个图形用户界面，用户通过鼠标手动的选择位于左眼位置的体素`index`. 我们需要将这个`index`位置转换为物理位置，从而激光引导手术可以精确地执行。`TransformIndexToPhysicalPoint `方法可以用在这个地方。
+
+```c++
+const ImageType::IndexType LeftEyeIndex = GetIndexFromMouseClick();
+ImageType::PointType LeftEyePoint;
+image->TransformIndexToPhysicalPoint(LeftEyeIndex,LeftEyePoint);
+```
+
+对于一个给定的`index` $I_{3\times1}$, 物理位置$P_{3\times1}$计算如下：
+
+P3X1 = O3X1 +D3X3 ∗ diag(S3X1)3x3 ∗ I3X1
+$$
+P_{3\times1}=O_{3\times1}+D_{3\times3}*diag(S_{3\times1})_{3\times3}*I_{3\times1}
+\tag{1.1}
+$$
+其中，$D$ 是一个标准正交的方向余弦矩阵，$S$ 是图像距离对角矩阵。
+
+matlab语法：
+
+```matlab
+% Non-identity Spacing and Direction
+spacing=diag( [0.9375, 0.9375, 1.5] );
+direction=[0.998189, 0.0569345, -0.0194113;
+0.0194429, -7.38061e-08, 0.999811;
+0.0569237, -0.998378, -0.00110704];
+point = origin + direction * spacing * LeftEyeIndex
+```
+
+一个相应的C/C++的数学扩展为：
+
+```c++
+typedef itk::Matrix<double, Dimension, Dimension> MatrixType;
+MatrixType SpacingMatrix;
+SpacingMatrix.Fill( 0.0F );
+const ImageType::SpacingType & ImageSpacing = image->GetSpacing();
+SpacingMatrix( 0,0 ) = ImageSpacing[0];
+SpacingMatrix( 1,1 ) = ImageSpacing[1];
+SpacingMatrix( 2,2 ) = ImageSpacing[2];
+const ImageType::DirectionType & ImageDirectionCosines =
+image->GetDirection();
+const ImageType::PointType &ImageOrigin = image->GetOrigin();
+typedef itk::Vector< double, Dimension > VectorType;
+VectorType LeftEyeIndexVector;
+LeftEyeIndexVector[0]= LeftEyeIndex[0];
+LeftEyeIndexVector[1]= LeftEyeIndex[1];
+LeftEyeIndexVector[2]= LeftEyeIndex[2];
+ImageType::PointType LeftEyePointByHand =
+ImageOrigin + ImageDirectionCosines * SpacingMatrix * LeftEyeIndexVector;
+```
+
