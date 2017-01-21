@@ -142,6 +142,6 @@ image->SetPixel( pixelIndex, pixelValue+1 );
 
 图像原点，体素方向，和间距对许多应用来说是非常重要的。例如配准，需要在物理坐标系中进行。不合适定义的间距、方向和原点将导致不一致的结果。没有空间信息的医学图像不能被用于医学诊断、特征提取、图像分析、辅助放疗治疗和图像手术导航。换句话说，缺乏空间信息的医学图像不仅仅是无用的，而且是危险的。
 
-![图4_1](D:\dandfly\image\图4_1.PNG)
+![]([dandfly](https://github.com/chenypic/dandfly)/[image](https://github.com/chenypic/dandfly/tree/master/image)/**图4_1.PNG**)
 
 Figure 4.1 illustrates the main geometrical concepts associated with the itk::Image. In this figure,
