@@ -304,7 +304,80 @@ ImageType::PointType LeftEyePointByHand =
 ImageOrigin + ImageDirectionCosines * SpacingMatrix * LeftEyeIndexVector;
 ```
 
-### 1.1.5 RGB图像
+### 1.1.5. RGB图像
 
+源代码：`RGBImage.cxx`.
 
+感谢泛型编程的灵活性，使实例化任意像素类型的图像变得可能。下面的例子说明了怎么定义一个彩色图片。
+
+为了使用`itk::RGBPixel`类，应该包含头文件。
+
+```c++
+#include "itkRGBPixel.h"
+```
+
+RGB像素类是一个基于红绿蓝像素成分的模板化的像素类。典型的实例化如下所示。
+
+```c++
+typedef itk::RGBPixel< unsigned char > PixelType;
+```
+
+然后这个类型用于图像的像素模板参数。
+
+```c++
+typedef itk::Image< PixelType, 3 > ImageType;
+```
+
+图像类型可以用于实例化其他滤波器。例如，一个`itk::ImageFileReader`对象从文件读取图像。
+
+```c++
+typedef itk::ImageFileReader< ImageType > ReaderType;
+```
+
+利用`RGBPixel`类提供的方法，现在可以访问像素的color元素。
+
+```c++
+PixelType onePixel = image->GetPixel( pixelIndex );
+PixelType::ValueType red = onePixel.GetRed();
+PixelType::ValueType green = onePixel.GetGreen();
+PixelType::ValueType blue = onePixel.GetBlue();
+```
+
+###  1.1.6. 向量图像
+
+源代码：`VectorImage.cxx`.
+
+许多图像处理任务需要非标量像素数据。一个典型的例子是向量图像。这种图像用来表示标量图像的梯度。下面的例子用来阐述实例化和使用具有向量类型像素的图像。
+
+为了方便起见，我们使用`itk::Vector`类定义像素类型。 `Vector`类用于表示空间中的几何向量。与STL中的数组容器不一样。如果你对容器感兴趣，`itk::VectorContainer`类可以提供你想要的函数。
+
+首先是包含`vector`的头向量。
+
+```c++
+#include "itkVector.h"
+```
+
+向量类的使用是在基于空间中代表坐标和维数的类型之上进行模板化的。在此例中，向量的维度和图像维度相匹配，但是并不是完全相同。我们可以用一个三维的向量作为像素来定义一个四维的图像。
+
+```c++
+typedef itk::Vector< float, 3 > PixelType;
+typedef itk::Image< PixelType, 3 > ImageType;
+```
+
+`Vector`类从`itk::FixedArray`类继承了操作符[], 可以使用`index`来访问向量元素。
+
+```c++
+ImageType::PixelType pixelValue;
+pixelValue[0] = 1.345; // x component
+pixelValue[1] = 6.841; // y component
+pixelValue[2] = 3.295; // x component
+```
+
+通过定义一个`index`和引用`SetPixel() `方法，我们可以将这个向量存储在图像像素中。
+
+```c++
+image->SetPixel( pixelIndex, pixelValue );
+```
+
+### 1.1.7. 从缓冲器中输入图像数据
 
