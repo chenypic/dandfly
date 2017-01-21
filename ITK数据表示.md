@@ -146,4 +146,70 @@ image->SetPixel( pixelIndex, pixelValue+1 );
 
 图4.1阐述了与` itk::Image.`相关的主要几何概念。在图中，圆圈表示像素的中心，像素值为像素中心的狄拉克 $\delta$ 函数。像素间距为像素中心之间的距离，在不同的维度上可以不同。图像原点为第一个像素的坐标。对于这个简单的例子，像素网格在物理空间中完美的分配，图像方向是一个恒等映射。如果像素网格按照物理空间进行旋转，图像方向将包括一个旋转矩阵。
 
-一个像素是环绕在像素中心的一个矩形区域的一个有效的值。可以视为图像网格的`Voronoi`区域，如右图所示。像素值的线性内插法在`Delaunay `区域内执行，其乖点为像素中心。
+一个像素是环绕在像素中心的一个矩形区域的一个有效的值。可以视为图像网格的`Voronoi`区域，如右图所示。像素值的线性内插法在`Delaunay `区域内执行，其拐点为像素中心。
+
+图像间距在`FixedArray `中表示，其大小与图像的维度相匹配。为了可以手动设定图像的间距，必须创建一个相应的数组。数组的元素应该被相邻像素的中心的距离初始化。下面的代码展示了在` itk::Image`类中处理间距和原点的方法。
+
+```c++
+ImageType::SpacingType spacing;
+// Units (e.g., mm, inches, etc.) are defined by the application.
+spacing[0] = 0.33; // spacing along X
+spacing[1] = 0.33; // spacing along Y
+spacing[2] = 1.20; // spacing along Z
+```
+
+利用`SetSpacing() `方法将数组指向图像。
+
+```c++
+image->SetSpacing( spacing );
+```
+
+使用`GetSpacing()`方法可以从图像中得到间距信息，该方法返回一个`FixedArray`的引用。返回对象可以用于读取数组的内容。请注意：关键字`const`表示数组不可以被修改。
+
+```c++
+const ImageType::SpacingType& sp = image->GetSpacing();
+std::cout << "Spacing = ";
+std::cout << sp[0] << ", " << sp[1] << ", " << sp[2] << std::endl;
+```
+
+图像原点的处理方法与间距类似。首先分配好维度。任何一个组成部分都可以分配为原点的坐标。这些坐标对应于图像的第一个像素，可以使用任意的参考系统。用户必须保证同一个应用下的图像都是使用一致的参考系统，这对图像配准极其重要。
+
+下面的代码阐述了初始化图像原点的变量的创建和分配。
+
+```c++
+// coordinates of the center of the first pixel in N-D
+ImageType::PointType newOrigin;
+newOrigin.Fill(0.0);
+image->SetOrigin( newOrigin );
+```
+
+采用`GetOrigin()`方法可以从图像中获取原点，产生一个点的引用。这个引用可以用来读取数组的内容。 
+
+```c++
+const ImageType::PointType & origin = image->GetOrigin();
+std::cout << "Origin = ";
+std::cout << origin[0] << ", "
+<< origin[1] << ", "
+<< origin[2] << std::endl;
+```
+
+图像方向矩阵表示图像和物理空间坐标系之前的方向关系。图像方向矩阵是一个正则化的矩阵，描述图像`index`值和旋转角度的可能的排列。图像方向是一个$N \times N$ 的矩阵，其中$N$是图像的维度。一个确定的图像方向表明1st, 2nd和3rd 的`index` 元素的增加值对应于1st, 2nd and 3rd的物理空间轴的增加。
+
+下面的代码阐述了用来初始化图像方向的变量的创建和分配。
+
+```c++
+// coordinates of the center of the first pixel in N-D
+ImageType::DirectionType direction;
+direction.SetIdentity();
+image->SetDirection( direction );
+```
+
+使用方法` GetDirection() `可以从图像中获取方向，返回一个矩阵的引用。这个引用可用于读取数组的内容。
+
+```c++
+const ImageType::DirectionType& direct = image->GetDirection();
+std::cout << "Direction = " << std::endl;
+std::cout << direct << std::endl;
+```
+
+Once the spacing, origin, and direction of the image samples have been initialized, the image will correctly map pixel indices to and from physical space coordinates. The following code illustrates how a point in physical space can be mapped into an image index for the purpose of reading the content of the closest pixel.
