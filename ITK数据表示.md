@@ -1,6 +1,4 @@
-<script type="text/javascript"
-   src="path-to-MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML&delayStartupUntil=configured">
-</script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 
 # 1.数据表示
 
