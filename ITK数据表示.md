@@ -112,3 +112,36 @@ ImageType::Pointer image = reader->GetOutput();
 
 接下来的代码展示了`index`变量的声明，并对其成员值进行分配。并不使用`SmartPointer`访问`index`. 因为`index`是一个不与任何对象共享的轻量对象。	与使用`SmartPointer`机制相比较，对这些小对象产生多种拷贝更加有效。
 
+下面的代码是对`index`类型进行实例化声明并进行初始化，使其与图像的像素位置进行关联。
+
+```c++
+const ImageType::IndexType pixelIndex = {{27,29,37}}; // Position of {X,Y,Z}
+```
+
+用`index`定义了一个像素位置后，就可以访问图像中像素的内容。`GetPixel()`方法允许我们得到一个像素值。
+
+```c++
+ImageType::PixelType pixelValue = image->GetPixel( pixelIndex );
+```
+
+`SetPixel()`方法允许我们设置像素值。
+
+```c++
+image->SetPixel( pixelIndex, pixelValue+1 );
+```
+
+请注意`GetPixel()`方法使用拷贝值来返回数据，此方法不能改变像素值。
+
+请记住`SetPixel()`和`GetPixel()`都是低效率的，只能用来调试或者支持交互，例如点击鼠标查询像素值。
+
+### 1.1.4. 定义原点和间距
+
+源代码`Image4.cxx`.
+
+尽管ITK可以用于一般的图像处理任务，但是这个工具的最主要的任务是处理医学图像数据。因此，必须增加额外的信息。关于一些坐标系中同像素与图像位置之间之间的物理空间信息非常重要。
+
+图像原点，体素方向，和间距对许多应用来说是非常重要的。例如配准，需要在物理坐标系中进行。不合适定义的间距、方向和原点将导致不一致的结果。没有空间信息的医学图像不能被用于医学诊断、特征提取、图像分析、辅助放疗治疗和图像手术导航。换句话说，缺乏空间信息的医学图像不仅仅是无用的，而且是危险的。
+
+![图4_1](D:\dandfly\image\图4_1.PNG)
+
+Figure 4.1 illustrates the main geometrical concepts associated with the itk::Image. In this figure,
