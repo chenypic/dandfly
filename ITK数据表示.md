@@ -106,12 +106,9 @@ ImageType::Pointer image = reader->GetOutput();
 
 源代码为`Image3.cxx`.
 
-This example illustrates the use of the SetPixel() and GetPixel() methods. These two methods provide direct access to the pixel data contained in the image. Note that these two methods are relatively slow and should not be used in situations where high-performance access is required.
-Image iterators are the appropriatemechanism to efficiently access image pixel data. (See Chapter 6 on page 141 for information about image iterators.)
+这个例子展示了`SetPixel() `和`GetPixel()`方法的使用。这两种方法可以直接访问像素中的数据。这两种方法较为缓慢，在高性能的需求环境中不宜使用。图像迭代器是一个有效的访问图像像素数据的机制（有关图像迭代器的知识请见第6章）。
 
-这个例子展示了`SetPixel() `和`GetPixel()`方法的使用。
+每个像素的位置由一个特定的`index`来区分。一个`index`是一个整数数组，定义了图像每一维中像素的位置。`Index`的类型由图像自动定义，可以使用作用与操作符`itk::Index`进行访问。数组的长度与图像的维数相匹配。
 
-
-
-
+接下来的代码展示了`index`变量的声明，并对其成员值进行分配。并不使用`SmartPointer`访问`index`. 因为`index`是一个不与任何对象共享的轻量对象。	与使用`SmartPointer`机制相比较，对这些小对象产生多种拷贝更加有效。
 
