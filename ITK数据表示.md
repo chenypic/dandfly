@@ -265,6 +265,8 @@ image->TransformIndexToPhysicalPoint(LeftEyeIndex,LeftEyePoint);
 ```
 
 对于一个给定的`index` $I_{3\times1}$, 物理位置$P_{3\times1}$计算如下：
+
+
 $$
 P_{3\times1}=O_{3\times1}+D_{3\times3}*diag(S_{3\times1})_{3\times3}*I_{3\times1}
 \tag{1.1}
