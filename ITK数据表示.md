@@ -1,12 +1,3 @@
-    <script type="text/javascript" 
-        src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-    </script>
-    <script type="text/javascript">MathJax.Hub.Config({tex2jax: {processEscapes: true, 
-        processEnvironments: false, inlineMath: [ ['$','$'] ], 
-        displayMath: [ ['$$','$$'] ] }, 
-        asciimath2jax: {delimiters: [ ['$','$'] ] }, 
-        "HTML-CSS": {minScaleAdjust: 125 } });
-    </script>
 # 1.数据表示
 
 本章介绍ITK中表示数据的基本的类。最常用的类为`itk::Image` 、`itk::PointSet` 和`itk::PointSet`.
