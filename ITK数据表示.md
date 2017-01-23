@@ -381,3 +381,117 @@ image->SetPixel( pixelIndex, pixelValue );
 
 ### 1.1.7. 从缓冲器中输入图像数据
 
+源代码`Image5.cxx`.
+
+这个例子展示了如何将数据输入到`itk::Image `类中。这在与其他软件系统相连时特别重要。许多系统利用内存的连续块作为像素的缓冲。当前的例子假设就是这样的情况，在缓冲器中插入一个`itk::ImportImageFilter`, 从而产生一个图像作为输出。
+
+利用本地分配的缓冲区创建了一个合成的图像，并将内存块传给`ImportImageFilter`. 用户必须提供一个输出文件名作为命令行变量。
+
+首先，必须包含` itk::ImportImageFilter`类的头文件。
+
+```c++
+#include "itkImage.h"
+#include "itkImportImageFilter.h"
+```
+
+接下来，我们选择表示像素的数据类型。我们假定外部内存块利用同样地数据类型表示像素。
+
+```c++
+typedef unsigned char PixelType;
+const unsigned int Dimension = 3;
+typedef itk::Image< PixelType, Dimension > ImageType;
+```
+
+`ImportImageFilter `的类型通过下面的行进行实例化。
+
+```c++
+typedef itk::ImportImageFilter< PixelType, Dimension > ImportFilterType;
+```
+
+一个滤波器对象通过`New()`方法创建，并分配给` SmartPointer`. 
+
+```c++
+ImportFilterType::Pointer importFilter = ImportFilterType::New();
+```
+
+滤波器要求用户指定图像的大小来作为输出，使用`SetRgion()`方法即可做到。图像大小必须和当前调用的缓冲器的像素变量的数量相匹配：
+
+```c++
+ImportFilterType::SizeType size;
+size[0] = 200; // size along X
+size[1] = 200; // size along Y
+size[2] = 200; // size along Z
+ImportFilterType::IndexType start;
+start.Fill( 0 );
+ImportFilterType::RegionType region;
+region.SetIndex( start );
+region.SetSize( size );
+importFilter->SetRegion( region );
+```
+
+输出图像的原点由`SetOrigin()`方法指定。
+
+```c++
+const itk::SpacePrecisionType origin[ Dimension ] = { 0.0, 0.0, 0.0 };
+importFilter->SetOrigin( origin );
+```
+
+图像的间距由`SetSpacing()`方法指定。
+
+```c++
+// spacing isotropic volumes to 1.0
+const itk::SpacePrecisionType spacing[ Dimension ] = { 1.0, 1.0, 1.0 };
+importFilter->SetSpacing( spacing );
+```
+
+现在我们分配包含像素的内存块并传递给`ImportImageFilter`. 注意：我们使用与SetRegion( )方法指定的大小完全相同的尺寸。在实际应用中，你可以使用一个代表图像的不同的数据结构从一些其他的类库中得到这个缓冲器。
+
+```c++
+const unsigned int numberOfPixels = size[0] * size[1] * size[2];
+PixelType * localBuffer = new PixelType[ numberOfPixels ];
+```
+
+我们使用一个`binary sphere`来填充这个缓冲器。我们使用一个简单的`for()`循环。请注意，在访问像素的内部代码中，ITK不使用`for()`循环。使用支持处理n 维图像的`itk::ImageIterators` 来代替执行像素访问任务。
+
+```c++
+const double radius2 = radius * radius;
+PixelType * it = localBuffer;
+for(unsigned int z=0; z < size[2]; z++)
+{
+	const double dz = static_cast<double>( z )
+		- static_cast<double>(size[2])/2.0;
+	for(unsigned int y=0; y < size[1]; y++)
+	{
+		const double dy = static_cast<double>( y )
+			- static_cast<double>(size[1])/2.0;
+		for(unsigned int x=0; x < size[0]; x++)
+		{
+			const double dx = static_cast<double>( x )
+				- static_cast<double>(size[0])/2.0;
+			const double d2 = dx*dx + dy*dy + dz*dz;
+				*it++ = ( d2 < radius2 ) ? 255 : 0;
+		}
+	}
+}
+```
+
+缓冲器在`SetImportPointer( )`方法下传递到`ImportImageFilter`。注意这种方法的最后一个参数指明内存不再使用时谁来释放内存。当返回值为假时，表示当调用析构时`ImportImageFilter` 并没有释放缓冲器；当返回值是真时，表示允许滤波器删除输入滤波器的析构上的内存块。
+
+由于`ImportImageFilter `释放了适当的内存块，C++ new( )操作就可以调用这些内存。用其他分配内存机制分配的内存，比如C 中的`malloc `和`calloc`，将不会由`ImportImageFilter`来释放适当的内存。换句话说，编程应用者就需要确保仅仅给`ImportImageFilter` 命令来释放C++新操作分配内存。
+
+```c++
+const bool importImageFilterWillOwnTheBuffer = true;
+importFilter->SetImportPointer( localBuffer, numberOfPixels,
+importImageFilterWillOwnTheBuffer );
+```
+
+ 最后，我们将这个滤波器的输出连到一个管道上。为简便起见，我们在这里只使用一个`writer`，当然其他任何滤波器都可以。
+
+```c++
+typedef itk::ImageFileWriter< ImageType > WriterType;
+WriterType::Pointer writer = WriterType::New();
+writer->SetFileName( argv[1] );
+writer->SetInput( importFilter->GetOutput() );
+```
+
+现在我们不需要对滤波器调用释放操作，当`SetImportPointer()`最后一个参数为真。现在滤波器归`ImportImageFilter`所有。
